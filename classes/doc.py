@@ -61,6 +61,7 @@ class Doc():
         (straightablebox, dimensions, expressions)
         """
         try:
+            print('Trying to select sheet:')
             sh = self.get_sheet('Отчеты')
         except:
             sh = self.get_sheet('Универсальная таблица')
@@ -69,13 +70,14 @@ class Doc():
 
         # обращение к любому методу объекта StraightTableBox
         # 'Отчет по spaceman подробно 26.07.2021-09.08.2021'
-        # (Документ 'BMK_Запасы_fusion', лист 'Универсальная таблица')
+        # (Документы 'BMK_Запасы_fusion', 'BWD_Запасы_fusion' и их архивные приложения, лист 'Универсальная таблица')
         # приводит к отказу приложения, поэтому вместо поиска нужного объекта
         # через цикл необходимо ссылаться на нужную таблицу
         # напрямую через ее индекс    
-        if 'BMK_Запасы' in self.path:
+        if 'Запасы' in self.path:
             stboxes = sh.com.GetStraightTableBoxes()
-            turnover_straight_table_box_index = 1 # изменить при необходимости
+            turnover_straight_table_box_index = 0 # изменить при необходимости
+            print(f'Getting straight table box at index {turnover_straight_table_box_index}.')
             stbox = stboxes[turnover_straight_table_box_index]
             stbox = StraightTableBox(stbox)
         elif not (stbox := sh.get_straight_table_box('Универсальная таблица')):
