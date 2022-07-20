@@ -71,12 +71,12 @@ class Doc():
         # обращение к любому методу объекта StraightTableBox
         # 'Отчет по spaceman подробно 26.07.2021-09.08.2021'
         # (Документы 'BMK_Запасы_fusion', 'BWD_Запасы_fusion' и их архивные приложения, лист 'Универсальная таблица')
-        # приводит к отказу приложения, поэтому вместо поиска нужного объекта
-        # через цикл необходимо ссылаться на нужную таблицу
-        # напрямую через ее индекс    
+        # приводит к отказу приложения, поэтому вместо поиска нужного объекта через цикл 
+        # необходимо ссылаться на нужную таблицу напрямую через ее индекс    
         if 'Запасы' in self.path:
             stboxes = sh.com.GetStraightTableBoxes()
-            turnover_straight_table_box_index = 0 # изменить при необходимости
+            # BMK индекс таблицы 1, для гиппо - 0
+            turnover_straight_table_box_index = 0 if 'ГИППО' in self.path else 1 
             print(f'Getting straight table box at index {turnover_straight_table_box_index}.')
             stbox = stboxes[turnover_straight_table_box_index]
             stbox = StraightTableBox(stbox)
