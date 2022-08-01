@@ -1,4 +1,6 @@
 import concurrent.futures
+import re
+from typing import Generator
 
 import pywinauto
 import win32com.client as win32
@@ -15,7 +17,7 @@ class App:
         """Initialize an instance."""
         try:  # if QlikView is open try comtypes.client.GetActiveObject() to connect
             self.com: object = GetActiveObject('QlikTech.QlikView')
-        # Qlik is open, but comtypes.client.GetActiveObject() failed - use win32 to connect
+        # Qlik is open, but comtypes.lsclient.GetActiveObject() failed - use win32 to connect
         except AttributeError:  
             self.com: object = win32.DispatchEx("QlikTech.QlikView")       
         except OSError:  # Qlik is closed
@@ -25,31 +27,34 @@ class App:
                 self.com: object = win32.DispatchEx("QlikTech.QlikView")
         
 
-
-        self.uia: object = pywinauto.Application(backend='uia').connect(path=settings.QLIKVIEW_PATH) # specify keyword directly (write path=) for connect to work
+        # specify keyword directly (write path=) for connect to work
+        self.uia: object = pywinauto.Application(backend='uia').connect(path=settings.QLIKVIEW_PATH)
         self.pid: int = self.com.GetProcessId()
         self.servers = (settings.BMK_SERVER_URL, settings.GIPPO_SERVER_URL)
 
  
-    def list_docs(self) -> None:
-        """List all docs on the specified servers."""
+    def list_docs(self) -> list[str]:
+        """Get an iterable of all docs."""
+        docs: list[str] = []
         for server in self.servers:
             server_doc_list = self.com.GetServerDocList(server) # IArrayOfDocListEntry
-            print(f"SERVER: '{server}'")
-            print("DOCS ON SERVER:")
             for i in range(server_doc_list.Count):
                 doc_name = server_doc_list.Item(i).DocName
-                print(f"'{server}/{doc_name}'")
-            print()
+                docs.append(f'{server}/{doc_name}')
+        return docs
 
+
+    def find_docs(self, pattern: str) -> list[str]:
+        """Find all Docs matching the pattern."""
+        return [doc for doc in self.list_docs() if re.search(pattern, doc)]
+    
 
     def open_doc(self, doc_path: str) -> object:
         """Open a QlikView document and return a Document object, then create a QlikDoc object based on it."""
 
         doc_login_path = f"{settings.QLIKVIEW_PROTOCOL}{settings.QLIKVIEW_SERVER_LOGIN}@{doc_path.replace(settings.QLIKVIEW_PROTOCOL, '')}"
 
-        
-        print(f"Doc login path is {doc_login_path}")
+
         def call_open_doc(doc_login_path: str) -> object:
             """Call an OpenDoc method from the app's COM object."""
             return self.com.OpenDoc(doc_login_path, settings.QLIKVIEW_USER, settings.QLIKVIEW_USER_PASSWORD)

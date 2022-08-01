@@ -1,7 +1,7 @@
 from .list_box import ListBox
 from .straight_table_box import StraightTableBox
 
-class Sheet(object):
+class Sheet:
     """A sheet is one of the objects of a QlikView document."""
 
     def __init__(self, com: object) -> None:

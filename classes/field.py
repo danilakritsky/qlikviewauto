@@ -1,7 +1,7 @@
 from bmk.functions import list_args
 
 
-class Field(object):
+class Field:
     
     """A field is used to filter the document."""
     def __init__(self, com: object) -> None:

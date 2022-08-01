@@ -1,7 +1,7 @@
 from .field import Field
 
 
-class ListBox(object):
+class ListBox:
     """A list box is one of a Sheet's objects."""
     def __init__(self, com: object) -> None:
         """Initialize the class."""

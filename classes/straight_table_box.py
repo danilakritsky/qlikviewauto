@@ -4,7 +4,7 @@ import pandas as pd
 from bmk.functions import gen_tempfile_name
 
 
-class StraightTableBox(object):
+class StraightTableBox:
     """A straight table is one of a Sheet's objects."""
     def __init__(self, com: object) -> None:
         """Initialize the class."""
