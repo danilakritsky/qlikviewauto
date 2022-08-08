@@ -2,7 +2,7 @@
 
 from .classes.app import App
 
-class App(App):
 
+class App(App):
     def __init__(self):
         super().__init__()
