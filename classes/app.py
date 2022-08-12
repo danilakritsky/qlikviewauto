@@ -2,6 +2,7 @@ import concurrent.futures
 import re
 import time
 from typing import Generator
+from threading import Event
 
 import pywinauto
 import win32com.client as win32
@@ -48,22 +49,33 @@ class App:
         """Find all Docs matching the pattern."""
         return [doc for doc in self.list_docs() if re.search(pattern, doc)]
 
-    def _login_to_doc(self) -> None:
+    def _call_open_doc(self, doc_login_path: str, event: Event) -> object:
+        """Call an OpenDoc method from the app's COM object."""
+        doc =  self.com.OpenDoc(doc_login_path, settings.QLIKVIEW_USER, settings.QLIKVIEW_USER_PASSWORD)
+        event.set()
+        return doc
+
+    def _login_to_doc(self, event: Event) -> None:
         """Perform a sequence of GUI actions for logging in to the document.
 
         NOTE: server login is not necessary if we have already preformed a connection
         # to the server during this session.
         """
-        if self.uia.top_window()[f"Password"].exists():
-            self.uia.top_window()[f"Password"].Edit.type_keys(
-                settings.QLIKVIEW_SERVER_PASSWORD
-            )
-            self.uia.top_window()["OK"].click()
+        # call until the event is set in case 
+        # the window did not catch keys upon first call
+        while not event.is_set():
+            # any errors raised here will nut be catched since 
+            # we are not accessing the future's result in ThreadPoolExecutor
+            if self.uia.top_window()[f"Password"].exists():
+                self.uia.top_window()[f"Password"].Edit.type_keys(
+                    settings.QLIKVIEW_SERVER_PASSWORD
+                )
+                self.uia.top_window()["OK"].click()
 
-        self.uia.top_window()["User Identification"].type_keys(settings.QLIKVIEW_USER)
-        self.uia.top_window()["OK"].click()
-        self.uia.top_window()["Password"].type_keys(settings.QLIKVIEW_USER_PASSWORD)
-        self.uia.top_window()["OK"].click()
+            self.uia.top_window()["User Identification"].type_keys(settings.QLIKVIEW_USER)
+            self.uia.top_window()["OK"].click()
+            self.uia.top_window()["Password"].type_keys(settings.QLIKVIEW_USER_PASSWORD)
+            self.uia.top_window()["OK"].click()
 
     def open_doc(self, doc_path: str) -> object:
         """Open a QlikView document and return a Document object, then create a QlikDoc object based on it."""
@@ -71,13 +83,13 @@ class App:
         doc_login_path = f"{settings.QLIKVIEW_PROTOCOL}{settings.QLIKVIEW_SERVER_LOGIN}@{doc_path.replace(settings.QLIKVIEW_PROTOCOL, '')}"
 
         # we have to use multi threading in order to be able to use GUI automation while calling OpenDoc()
+        doc_opened = Event()
         with concurrent.futures.ThreadPoolExecutor() as ex:
             future_doc = ex.submit(
-                self.com.OpenDoc,
+                self._call_open_doc,
                 doc_login_path,
-                settings.QLIKVIEW_USER,
-                settings.QLIKVIEW_USER_PASSWORD,
+                doc_opened
             )
-            ex.submit(self._login_to_doc)
+            ex.submit(self._login_to_doc, doc_opened)
 
         return Doc(doc_path, future_doc.result())
