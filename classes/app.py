@@ -1,5 +1,6 @@
 import concurrent.futures
 import re
+import time
 from typing import Generator
 
 import pywinauto
@@ -47,37 +48,36 @@ class App:
         """Find all Docs matching the pattern."""
         return [doc for doc in self.list_docs() if re.search(pattern, doc)]
 
+    def _login_to_doc(self) -> None:
+        """Perform a sequence of GUI actions for logging in to the document.
+
+        NOTE: server login is not necessary if we have already preformed a connection
+        # to the server during this session.
+        """
+        if self.uia.top_window()[f"Password"].exists():
+            self.uia.top_window()[f"Password"].Edit.type_keys(
+                settings.QLIKVIEW_SERVER_PASSWORD
+            )
+            self.uia.top_window()["OK"].click()
+
+        self.uia.top_window()["User Identification"].type_keys(settings.QLIKVIEW_USER)
+        self.uia.top_window()["OK"].click()
+        self.uia.top_window()["Password"].type_keys(settings.QLIKVIEW_USER_PASSWORD)
+        self.uia.top_window()["OK"].click()
+
     def open_doc(self, doc_path: str) -> object:
         """Open a QlikView document and return a Document object, then create a QlikDoc object based on it."""
 
         doc_login_path = f"{settings.QLIKVIEW_PROTOCOL}{settings.QLIKVIEW_SERVER_LOGIN}@{doc_path.replace(settings.QLIKVIEW_PROTOCOL, '')}"
 
-        def call_open_doc(doc_login_path: str) -> object:
-            """Call an OpenDoc method from the app's COM object."""
-            return self.com.OpenDoc(
-                doc_login_path, settings.QLIKVIEW_USER, settings.QLIKVIEW_USER_PASSWORD
-            )
-
-        def login_to_doc() -> None:
-            """Perform a sequence of GUI actions for logging in to the document."""
-            if self.uia.top_window()[
-                f"Password"
-            ].exists():  # server login is not necessary if we have already preformed a connection to the server during this session
-                self.uia.top_window()[f"Password"].Edit.type_keys(
-                    settings.QLIKVIEW_SERVER_PASSWORD
-                )
-                self.uia.top_window()["OK"].click()
-
-            self.uia.top_window()["User Identification"].type_keys(
-                settings.QLIKVIEW_USER
-            )
-            self.uia.top_window()["OK"].click()
-            self.uia.top_window()["Password"].type_keys(settings.QLIKVIEW_USER_PASSWORD)
-            self.uia.top_window()["OK"].click()
-
         # we have to use multi threading in order to be able to use GUI automation while calling OpenDoc()
         with concurrent.futures.ThreadPoolExecutor() as ex:
-            ex.submit(login_to_doc)
-            result = call_open_doc(doc_login_path)  # does not work as part of the pool
+            future_doc = ex.submit(
+                self.com.OpenDoc,
+                doc_login_path,
+                settings.QLIKVIEW_USER,
+                settings.QLIKVIEW_USER_PASSWORD,
+            )
+            ex.submit(self._login_to_doc)
 
-        return Doc(doc_path, result)
+        return Doc(doc_path, future_doc.result())
