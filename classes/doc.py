@@ -79,14 +79,13 @@ class Doc:
         (straightablebox, dimensions, expressions)
         """
         # если листа 'Отчеты' не существует, попробовать открыть лист 'Универсальная таблица'
-        sh: Sheet
         try:
-            sh = self.get_sheet("Универсальная таблица")
-        except COMError:
-            try:
-                sh = self.get_sheet("Отчеты")
-            except COMError:
-                raise ValueError("Не найден лист с универсальной таблицей.")
+            stbox_sheet_name: str = (
+                {*self.list_sheets()} & {'Универсальная таблица', 'Отчеты'}
+            ).pop()
+            sh: Sheet = self.get_sheet(stbox_sheet_name)
+        except KeyError:
+            raise ValueError("Не найден лист с универсальной таблицей.")
 
         # обращение к любому методу объекта StraightTableBox
         # с именем 'Отчет по spaceman подробно 26.07.2021-09.08.2021'
