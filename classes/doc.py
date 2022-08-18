@@ -1,4 +1,7 @@
 import logging
+from re import S
+
+from comtypes import COMError
 
 from .field import Field
 from .list_box import ListBox
@@ -76,9 +79,14 @@ class Doc:
         (straightablebox, dimensions, expressions)
         """
         # если листа 'Отчеты' не существует, попробовать открыть лист 'Универсальная таблица'
-        sh = self.get_sheet("Универсальная таблица") or self.get_sheet("Отчеты")
-        if not sh:  # if no sheet has been found
-            raise ValueError("Не найден лист с универсальной таблицей.")
+        sh: Sheet
+        try:
+            sh = self.get_sheet("Универсальная таблица")
+        except COMError:
+            try:
+                sh = self.get_sheet("Отчеты")
+            except COMError:
+                raise ValueError("Не найден лист с универсальной таблицей.")
 
         # обращение к любому методу объекта StraightTableBox
         # с именем 'Отчет по spaceman подробно 26.07.2021-09.08.2021'
