@@ -73,7 +73,7 @@ class Field:
     def select_values(self, *args) -> None:
         """Select new values for the field."""
 
-        values = list_args(args)
+        values = set(args)
         self.com.Clear()
 
         is_numeric = self.com.GetProperties().IsNumeric
@@ -92,7 +92,7 @@ class Field:
     def deselect_values(self, *args) -> None:
         """Deselect values for the field."""
 
-        values_to_deselect = set(list_args(args))
+        values_to_deselect = set(args)
 
         is_numeric = self.com.GetProperties().IsNumeric
 
