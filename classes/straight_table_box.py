@@ -1,7 +1,14 @@
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 
 import pandas as pd
-from bmk.functions import gen_tempfile_name
+
+
+def gen_tempfile_name(ext: str = "xlsx") -> object:
+    """Generate a temp file name as a Path object with the specified extension."""
+    with NamedTemporaryFile(delete=True) as temp:
+        temp_path = temp.name + "." + ext
+    return Path(temp_path)
 
 
 class StraightTableBox:

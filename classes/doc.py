@@ -81,7 +81,7 @@ class Doc:
         # если листа 'Отчеты' не существует, попробовать открыть лист 'Универсальная таблица'
         try:
             stbox_sheet_name: str = (
-                {*self.list_sheets()} & {'Универсальная таблица', 'Отчеты'}
+                {*self.list_sheets()} & {"Универсальная таблица", "Отчеты"}
             ).pop()
             sh: Sheet = self.get_sheet(stbox_sheet_name)
         except KeyError:
