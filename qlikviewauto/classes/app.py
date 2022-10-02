@@ -1,10 +1,5 @@
 import asyncio
-import concurrent.futures
 import re
-import time
-from threading import Event
-from typing import Generator
-from unittest.mock import NonCallableMagicMock
 
 import pywinauto
 import win32com.client as win32
@@ -32,10 +27,10 @@ class App:
 
         # specify keyword directly (write path=) for connect to work
         self.uia: object = pywinauto.Application(backend="uia").connect(
-            path=settings.QLIKVIEW_PATH
+            path=settings.QLIKVIEW_APP_PATH
         )
         self.pid: int = self.com.GetProcessId()
-        self.servers = (settings.BMK_SERVER_URL, settings.GIPPO_SERVER_URL)
+        self.servers = (settings.QLIK_VIEW_SERVER_URL, )
 
     def list_docs(self) -> list[str]:
         """Get an iterable of all docs."""

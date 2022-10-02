@@ -13,7 +13,7 @@ class ListBox:
         """Return the name of the list box instance."""
         return f"<qlik.ListBox - '{self.name}'>"
 
-    # TODO: make it a property
+    # TODO: convert to property
     def get_field(self) -> object:
         """Return the field shown in the list box."""
         field = Field(self.com.GetField())

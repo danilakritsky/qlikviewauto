@@ -1,6 +1,3 @@
-from bmk.functions import list_args
-
-
 class Field:
 
     """A field is used to filter the document."""
