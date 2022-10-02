@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "qlikview_api"
 version = "0.1.0"
-description = "Module provides a high level API to working with QlikView windows client."
+description = This module provides a set of wrappers around the QlikView Desktop COM API to automate the report building process.
 authors = ["Danila Kritsky <danilakritsky@gmail.com>"]
 license = "MIT"
 
